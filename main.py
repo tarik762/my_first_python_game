@@ -116,13 +116,10 @@ main_display = PG.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT),vsync=1);
 #Встановлюємо заголовок вікна
 PG.display.set_caption('Моя перша гра на Пайтон');
 
-#Створюємо фігуру-гравця - квадрат;
-player = PG.Surface((PLAYER_WIDTH, PLAYER_HEIGHT));
-#player = PG.image.load("images/player.png");
+#Створюємо фігуру-гравця;
+player = PG.image.load("images/player.png");
 player_rect = player.get_rect(topleft=(PLAYER_X, PLAYER_Y));
-#Малюємо круг в центрі фігури-гравця (об'єкт player, (колір,колір,колір), (координати центру,координати центру), радіус)
-#Потім буде замінено на іконку гравця
-PG.draw.circle(player, PG.Color(PLAYER_COLOR), (PLAYER_WIDTH/2, PLAYER_HEIGHT/2), PLAYER_HEIGHT/2-1);
+
 
 #фігура для прогресу
 score_container = PG.Surface((SCORE_BACKGROUND_WIDTH,SCORE_BACKGROUND_HEIGHT));
