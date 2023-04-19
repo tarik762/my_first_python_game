@@ -1,18 +1,22 @@
 #!/usr/bin/python3
 import pygame as PG;
 import random as RN;
+import os;
 
 ### Константи
 #Встановлюємо висоту і ширину екрану
 SCREEN_HEIGHT = 768;
 SCREEN_WIDTH = 1376;
 
-#фон екрану
-SCREEN_BACKGROUND = PG.transform.scale(PG.image.load("images/background.png"), (SCREEN_WIDTH,SCREEN_HEIGHT));
+IMAGES_PATH = "images";
 
-#Встановлюємо розміри гравця (фігури-поверхні)
-PLAYER_HEIGHT = 50;
-PLAYER_WIDTH = 50;
+#фон екрану
+SCREEN_BACKGROUND = PG.transform.scale(PG.image.load(os.path.join(IMAGES_PATH,"background.png")), (SCREEN_WIDTH,SCREEN_HEIGHT));
+
+#Встановлюємо картинки гравця
+PLAYER_IMAGES_PATH = os.path.join(IMAGES_PATH,"player-animate");
+PLAYER_IMAGES = os.listdir(PLAYER_IMAGES_PATH);
+
 
 #Встановлюємо розміри ворога
 ENEMY_HEIGHT = 30;
@@ -68,7 +72,8 @@ SCORE_FONT = PG.font.SysFont("Verdana",30);
 ENEMY_CREATE = PG.USEREVENT + 1;
 #USEREVENT появи бонусу
 BONUS_CREATE = PG.USEREVENT + 2;
-
+#USEREVENT зміни картинки гравця
+PLAYER_IMAGE_CHANGE = PG.USEREVENT = 3;
 
 
 ### Змінні
@@ -80,6 +85,8 @@ score = 0;
 bonus_text = SCORE_FONT.render(str(score),True,PG.Color(SCORE_FONT_COLOR));
 #лічильник для позиції бекграунда
 bg_counter = 0;
+#лічильник для зміни картинки гравця
+pl_counter = 0;
 
 ###Функції
 #обнова таймера для події
@@ -90,8 +97,7 @@ def set_timer_event(event,ms):
 #додавання ворога
 def create_enemy (x,y,speed):
     #Створюємо фігуру ворога
-    enemy = PG.Surface((ENEMY_WIDTH,ENEMY_HEIGHT));
-    PG.draw.rect(enemy,PG.Color(ENEMY_COLOR),PG.Rect(0,0,ENEMY_WIDTH,ENEMY_HEIGHT));
+    enemy = PG.image.load(os.path.join(IMAGES_PATH,"enemy.png"));
     enemy_rect = enemy.get_rect();
     enemy_rect.x = x;
     enemy_rect.y = y;
@@ -100,8 +106,7 @@ def create_enemy (x,y,speed):
 #додавання бонусу
 def create_bonus(x,y,speed):
     #Створюємо фігуру бонусу
-    bonus = PG.Surface((BONUS_WIDTH,BONUS_HEIGHT));
-    PG.draw.rect(bonus,PG.Color(BONUS_COLOR),PG.Rect(0,0,BONUS_WIDTH,BONUS_HEIGHT));
+    bonus = PG.image.load(os.path.join(IMAGES_PATH,"bonus.png"));
     bonus_rect = bonus.get_rect();
     bonus_rect.x = x;
     bonus_rect.y = y;
@@ -117,7 +122,7 @@ main_display = PG.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT),vsync=1);
 PG.display.set_caption('Моя перша гра на Пайтон');
 
 #Створюємо фігуру-гравця;
-player = PG.image.load("images/player.png");
+player = PG.image.load(os.path.join(IMAGES_PATH,"player.png"));
 player_rect = player.get_rect(topleft=(PLAYER_X, PLAYER_Y));
 
 
@@ -131,6 +136,8 @@ score_container_rect = score_container.get_rect(topright=(SCREEN_WIDTH,0));
 set_timer_event(ENEMY_CREATE,RN.randint(*ENEMY_APPEARENCE_RANGE) * 1000);
 #Ініціалізуємо таймер для першого бонусу
 set_timer_event(BONUS_CREATE,RN.randint(*BONUS_APPEARENCE_RANGE) * 1000);
+#запускаємо таймер події для зміни картинки гравця
+set_timer_event(PLAYER_IMAGE_CHANGE,200);
 enemies = [];
 bonuses = [];
 
@@ -190,6 +197,13 @@ while playing:
             #оновлюємо час випадіння нового бонусу
             set_timer_event(BONUS_CREATE,RN.randint(*BONUS_APPEARENCE_RANGE) * 1000);
     
+        #обробляємо подію зміни картинки гравця
+        if event.type == PLAYER_IMAGE_CHANGE:
+            player = PG.image.load(os.path.join(PLAYER_IMAGES_PATH,PLAYER_IMAGES[pl_counter]));
+            pl_counter += 1;
+            if pl_counter >= len(PLAYER_IMAGES):
+                pl_counter = 0;
+    
     #запускаємо ворогів на екран
     for enemy in enemies:
         main_display.blit(enemy["enemy"],enemy["enemy_rect"]);
@@ -199,7 +213,7 @@ while playing:
             enemies.pop(enemies.index(enemy));
         #фіксуємо удар ворога по гравцю
         if player_rect.colliderect(enemy["enemy_rect"]):
-            print ("BOOM");
+            playing = False;
     
     #запускаємо бонуси на екран
     for bonus in bonuses:
